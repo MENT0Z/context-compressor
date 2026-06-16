@@ -1,0 +1,1 @@
+print("Shree Ganesha Namah")
