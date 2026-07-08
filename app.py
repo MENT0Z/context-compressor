@@ -1,1 +1,0 @@
-print("Shree Ganesha Namah")
