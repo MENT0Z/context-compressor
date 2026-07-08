@@ -27,7 +27,6 @@
         "https://claude.ai/*"
       ],
       "js": [
-        "utils/turndown.js",
         "utils/parser.js",
         "content.js"
       ],
