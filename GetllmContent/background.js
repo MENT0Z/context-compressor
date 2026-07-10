@@ -1,8 +1,3 @@
-// chrome.runtime.onInstalled.addListener(()=>{
-// console.log("Installed");
-// });
-
-
 // background.js — Service worker
 // Imports all utils so they share the same global scope (classic importScripts).
 // Listens for two messages from popup.js:
