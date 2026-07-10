@@ -774,7 +774,14 @@ async function runExtractor(rawMessages) {
     }
 
     // Step 2: full context extraction
-    const extractedContext      = await extractWithLLM(scoredChunks);
+    let extractedContext = await extractWithLLM(scoredChunks);
+    console.log("extractedContext =", extractedContext);
+    console.log("typeof extractedContext =", typeof extractedContext);
+    console.log("Object.isFrozen(extractedContext) =", Object.isFrozen(extractedContext));
+    console.log("extractedContext.codeBlocks =", extractedContext.codeBlocks);
+    if(typeof extractedContext === "string") {
+        extractedContext = JSON.parse(extractedContext);
+    }
     extractedContext.codeBlocks = {};
 
     for (const [ref, block] of Object.entries(codeStore)) {

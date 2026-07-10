@@ -152,20 +152,54 @@ const SECTION_META = {
 };
 
 function buildAccordion(data) {
+    if (typeof data === "string") {
+        data = JSON.parse(data);
+    }
+    console.log("buildAccordion called with data:", data);
     const container = document.getElementById("accordion");
+    console.log("container =", container);
+    console.log("resultArea =", document.getElementById("resultArea"));
+    
     container.innerHTML = "";
 
     const order = ["goal", "currentState", "decisions", "unresolvedQuestions", "codeBlocks"];
 
+    console.log("typeof data =", typeof data);
+    console.log("data =", data);
+    console.log("keys =", Object.keys(data));
+    console.log("goal direct =", data.goal);
+    console.log("goal bracket =", data["goal"]);
+    console.log("hasOwn =", Object.prototype.hasOwnProperty.call(data, "goal"));
+
     for (const key of order) {
+        console.log("Checking key:", key);
         const value = data[key];
-        if (!value) continue;
-
+        console.log("value =", value);
+        if (!value){ 
+            console.log("Skipping key:", key);
+            continue;
+        }
         // Check emptiness
-        if (Array.isArray(value) && value.length === 0) continue;
-        if (typeof value === "object" && !Array.isArray(value) && Object.keys(value).length === 0) continue;
-        if (typeof value === "string" && !value.trim()) continue;
+        if (Array.isArray(value) && value.length === 0) {
+            console.log("Skipped empty array");
+            continue;
+        }
 
+        if (
+            typeof value === "object" &&
+            !Array.isArray(value) &&
+            Object.keys(value).length === 0
+        ) {
+            console.log("Skipped empty object");
+            continue;
+        }
+
+        if (typeof value === "string" && !value.trim()) {
+            console.log("Skipped empty string");
+            continue;
+        }
+        console.log("Rendering", key);
+        
         const meta = SECTION_META[key] || { label: key, icon: "•" };
 
         const item = document.createElement("div");
@@ -212,9 +246,17 @@ function buildAccordion(data) {
 
         item.appendChild(header);
         item.appendChild(body);
+        console.log("Before append:", container.children.length);
         container.appendChild(item);
+        console.log("After append:", container.children.length);
     }
     console.log("Accordion HTML:", container.innerHTML);
+
+    console.log(document.getElementById("accordion"));
+    console.log(document.getElementById("resultArea"));
+    console.log(document.getElementById("accordion").outerHTML);
+    console.log(document.getElementById("accordion").children.length);
+    console.log(document.getElementById("accordion").isConnected);
 }
 
 function buildCodeBlocks(container, codeBlocks) {
@@ -264,9 +306,9 @@ function escapeHTML(str) {
 }
 
 function showResult(data) {
-    console.log("Ment0x RESULT DATA:", data);
     currentResult = data;
     document.getElementById("resultArea").classList.remove("hidden");
+    console.log("showResult sent data:", data);
     buildAccordion(data);
 }
 
