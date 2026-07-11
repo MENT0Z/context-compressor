@@ -319,6 +319,19 @@ document.getElementById("saveKey").addEventListener("click", () => {
 
 // ── Step 1: Extract ───────────────────────────────────────────
 
+chrome.runtime.onMessage.addListener((req) => {
+    if (req.action !== "conversationChanged") return;
+
+    // Reset UI state so stale data from old conversation isn't shown
+    extractedData  = null;
+    currentResult  = null;
+    clearStatus();
+    document.getElementById("resultArea").classList.add("hidden");
+    document.getElementById("process").disabled = true;
+    setStatus("New conversation detected — click ① Extract to load it.", "info");
+});
+
+
 document.getElementById("extract").addEventListener("click", async () => {
     clearStatus();
     document.getElementById("resultArea").classList.add("hidden");
@@ -328,20 +341,32 @@ document.getElementById("extract").addEventListener("click", async () => {
 
     let [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
 
-    chrome.tabs.sendMessage(tab.id, { action: "extract" }, (res) => {
-        if (chrome.runtime.lastError) {
-            setStatus("Connection failed — refresh the page and try again.", "error");
-            return;
-        }
-        if (!res || !res.messages || res.messages.length === 0) {
-            setStatus("No messages found on this page.", "error");
-            return;
-        }
-
-        extractedData = res;
-        document.getElementById("process").disabled = false;
-        setStatus(`Extracted ${res.messages.length} message(s). Click ② Process to compress.`, "success");
+    // Use a Promise wrapper so we can await it cleanly
+    const res = await new Promise((resolve) => {
+        chrome.tabs.sendMessage(tab.id, { action: "extract" }, (response) => {
+            if (chrome.runtime.lastError) resolve(null);
+            else resolve(response);
+        });
     });
+
+    if (!res) {
+        setStatus("Connection failed — refresh the page and try again.", "error");
+        return;
+    }
+    if (res.error) {
+        setStatus(`Extraction error: ${res.error}`, "error");
+        return;
+    }
+    if (!res.messages || res.messages.length === 0) {
+        setStatus("No messages found on this page.", "error");
+        return;
+    }
+    console.log("Extracted data:", res);
+    extractedData = res;
+    document.getElementById("process").disabled = false;
+
+    // res.messages is now the real array (not a Promise), so .length works
+    setStatus(`Extracted ${res.messages.length} message(s). Click ② Process to compress.`, "success");
 });
 
 // ── Step 2: Process ───────────────────────────────────────────
